@@ -39,7 +39,7 @@ class SpotifyClient:
         return response.json()
     
     def get_artist_albums(self, artist_id):
-        URL = f'{self.URL_BASE}/artists/{artist_id}/albums?limit=50'
+        URL = f'{self.URL_BASE}/artists/{artist_id}/albums?include_groups=album&market=US&limit=50'
         return self.paginate(URL)
 
     def get_album(self, album_id):

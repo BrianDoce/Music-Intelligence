@@ -3,14 +3,15 @@ from ingestion.albums import get_artist_albums
 from ingestion.artists import get_artist_info
 from validation.album_validation import album_validation
 from validation.artist_validation import artist_validation
-from api.SpotifyClient import SpotifyClient as sc
+from api.SpotifyClient import SpotifyClient
 import pandas as pd
 import time
+
 def main():
     now = time.time()
     logger = get_logger("spotify_pipeline")
-    # artist_ids = pd.read_csv("data/artist_ids.csv")["artist_id"].tolist()
-    artist_ids = ['0du5cEVh5yTK9QJze8zA0']
+    artist_ids = pd.read_csv("data/artist_ids.csv")["artist_id"].tolist()
+    
     artist_ls = []
     raw_artist_ls = []
 
@@ -23,7 +24,8 @@ def main():
     valid_albums = 0
     invalid_albums = 0
 
-    client = sc.SpotifyClient()
+    client = SpotifyClient()
+    albums = []
 
     for artist_id in artist_ids:
         try:
