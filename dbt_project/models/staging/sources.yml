@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: bronze
+    database: MusicIntelligence
+    schema: bronze
+
+    tables:
+      - name: bronze_artists
+        description: "Raw Spotify artist JSON data loaded from S3"
+
+      - name: bronze_albums
+        description: "Raw Spotify album JSON data loaded from S3"
