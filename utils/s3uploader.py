@@ -1,5 +1,5 @@
 import boto3
-from logger import get_logger
+from utils.logger import get_logger
 BUCKET_NAME = 'music-intelligence-etl'
 s3 = boto3.client('s3')
 

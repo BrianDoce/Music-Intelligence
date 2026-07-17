@@ -2,7 +2,7 @@ from datetime import datetime
 
 def get_artist_albums(client, artist_id):
     raw_response = client.get_artist_albums(artist_id)
-    
+
     raw_artist_albums = {
         "source": "spotify",
         "endpoint": f"/artists/{artist_id}/albums",

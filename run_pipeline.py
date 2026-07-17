@@ -6,6 +6,7 @@ from validation.artist_validation import artist_validation
 from api.SpotifyClient import SpotifyClient
 from utils.savejson import save_json
 from utils.s3uploader import export_to_s3
+from datetime import datetime
 import pandas as pd
 import time
 
@@ -13,7 +14,8 @@ def main():
     now = time.time()
     logger = get_logger("spotify_pipeline")
     artist_ids = pd.read_csv("data/tracked_artists.csv")["artist_id"].tolist()
-    
+    run_date = datetime.now().strftime("%Y-%m-%d")
+
     artist_ls = []
     raw_artist_ls = []
 
@@ -25,6 +27,7 @@ def main():
 
     valid_albums = 0
     invalid_albums = 0
+    albums_processed = 0
 
     client = SpotifyClient()
 
@@ -46,8 +49,9 @@ def main():
                 continue
             
             album_records, raw_album_info = get_artist_albums(client, artist_id)
-            raw_album_ls.extend(raw_album_info)
+            raw_album_ls.append(raw_album_info)
             for album in album_records:
+                albums_processed += 1
                 logger.info(f"Processing album {album['album_name']}")
                 if album_validation(album):
                     valid_albums += 1
@@ -62,7 +66,7 @@ def main():
 
 
     logger.info(f"Artists processed: {len(artist_ids)}")
-    logger.info(f"Albums processed: {len(album_ls)}")
+    logger.info(f"Albums processed: {albums_processed}")
 
     logger.info(f"Artists collected: {len(artist_ls)}")
     logger.info(f"Albums collected: {len(album_ls)}")
@@ -70,26 +74,37 @@ def main():
     logger.info(f"Artists validated: {valid_artists}, Invalid artists: {invalid_artists}")
     logger.info(f"Albums validated: {valid_albums}, Invalid albums: {invalid_albums}")
 
+    artist_success_rate = valid_artists / len(artist_ids) * 100
+    album_success_rate = (
+        valid_albums / max(albums_processed, 1)
+    ) * 100
+
+    logger.info(f"Artist validation rate: {artist_success_rate:.2f}%")
+    logger.info(f"Album validation rate: {album_success_rate:.2f}%")
     elapsed = time.time() - now
     logger.info(f"Pipeline completed in {elapsed:.2f} seconds.")
 
     artist_file_path = "data/validated/artists.json"
     album_file_path = "data/validated/albums.json"
 
-    raw_artist_file_path = "data/raw/raw_artists.json"
-    raw_album_file_path = "data/raw/raw_albums.json"
+    raw_artist_file_path = "data/raw/artists.json"
+    raw_album_file_path = "data/raw/albums.json"
 
     save_json(artist_ls, artist_file_path)
     save_json(album_ls, album_file_path)
     save_json(raw_artist_ls, raw_artist_file_path)
     save_json(raw_album_ls, raw_album_file_path)
     
-    export_to_s3(artist_file_path, 'validated/artists.json')
-    export_to_s3(album_file_path, 'validated/albums.json')
+    logger.info("Uploading validated artists")
+    export_to_s3(artist_file_path, f'validated/artists/{run_date}.json')
+    logger.info("Uploading validated albums")
+    export_to_s3(album_file_path, f'validated/albums/{run_date}.json')
 
-    export_to_s3(raw_artist_file_path, 'raw/raw_artists.json')
-    export_to_s3(raw_album_file_path, 'raw/raw_albums.json')
-    
+    logger.info("Uploading raw artists")
+    export_to_s3(raw_artist_file_path, f'raw/artists/{run_date}.json')
+    logger.info("Uploading raw albums")
+    export_to_s3(raw_album_file_path, f'raw/albums/{run_date}.json')
+
 if __name__=="__main__":
     print("Pipeline Starting")
     main()
