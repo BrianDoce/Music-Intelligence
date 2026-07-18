@@ -1,0 +1,24 @@
+version: 2
+
+models:
+  - name: stg_artists
+    columns:
+      - name: artist_id
+        tests:
+          - unique
+          - not_null
+
+      - name: artist_name
+        tests:
+          - not_null
+
+  - name: stg_albums
+    columns:
+      - name: album_id
+        tests:
+          - unique
+          - not_null
+
+      - name: artist_id
+        tests:
+          - not_null
