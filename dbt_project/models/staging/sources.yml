@@ -11,3 +11,6 @@ sources:
 
       - name: bronze_albums
         description: "Raw Spotify album JSON data loaded from S3"
+        
+      - name: bronze_tracks
+        description: "Raw Spotify track JSON data loaded from S3"
