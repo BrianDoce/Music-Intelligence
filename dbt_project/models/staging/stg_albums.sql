@@ -14,7 +14,7 @@ SELECT
 
     album.value:external_urls.spotify::STRING AS spotify_url,
     album.value:uri::STRING AS spotify_uri,
-    album.value:href::STRING AS api_url,
+    album.value:href::STRING AS spotify_api_url,
 
     ingestion_timestamp,
 
@@ -33,6 +33,20 @@ LATERAL FLATTEN(
 
 )
 
-SELECT *
+SELECT
+    artist_id,
+    album_id,
+    album_name,
+    album_type,
+    release_date,
+    release_date_precision,
+    TRY_TO_NUMBER(SPLIT_PART(release_date,'-',1)) AS release_year,
+    total_tracks,
+    spotify_url,
+    spotify_uri,
+    spotify_api_url,
+    ingestion_timestamp,
+    CURRENT_TIMESTAMP() AS dbt_loaded_at
+
 FROM albums
 WHERE rn = 1

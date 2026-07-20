@@ -6,6 +6,8 @@ SELECT
     payload:data:followers.total::INTEGER AS followers,
     payload:data:popularity::INTEGER AS popularity,
     ingestion_timestamp,
+    current_timestamp() AS dbt_ingestion_timestamp,
+
 
     ROW_NUMBER() OVER(
         PARTITION BY payload:data:id
@@ -16,6 +18,11 @@ FROM {{ source('bronze','bronze_artists') }}
 
 )
 
-SELECT *
+SELECT artist_id,
+    artist_name,
+    followers,
+    popularity,
+    ingestion_timestamp,
+    CURRENT_TIMESTAMP() AS dbt_loaded_at
 FROM ranked
 WHERE rn = 1

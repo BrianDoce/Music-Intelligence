@@ -14,7 +14,8 @@ sources:
 
       - name: bronze_tracks
         description: "Raw Spotify track JSON data loaded from S3"
-    freshness:
-      warn_after:
-        count: 1
-        period: day
+    config:
+      freshness:
+        warn_after:
+          count: 1
+          period: day
