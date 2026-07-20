@@ -1,8 +1,12 @@
 version: 2
 
 models:
+
   - name: stg_artists
+    description: Clean Spotify artist records.
+
     columns:
+
       - name: artist_id
         tests:
           - unique
@@ -12,13 +16,66 @@ models:
         tests:
           - not_null
 
+      - name: followers
+        tests:
+          - not_null
+
+      - name: popularity
+        tests:
+          - not_null
+
+
   - name: stg_albums
+    description: Clean Spotify album records.
+
     columns:
+
       - name: album_id
         tests:
           - unique
           - not_null
 
       - name: artist_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_artists')
+              field: artist_id
+
+      - name: album_name
+        tests:
+          - not_null
+
+      - name: release_date
+        tests:
+          - not_null
+
+
+  - name: stg_tracks
+    description: Clean Spotify track records.
+
+    columns:
+
+      - name: track_id
+        tests:
+          - unique
+          - not_null
+
+      - name: album_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_albums')
+              field: album_id
+
+      - name: track_name
+        tests:
+          - not_null
+
+      - name: duration_ms
+        tests:
+          - not_null
+
+      - name: track_number
         tests:
           - not_null
