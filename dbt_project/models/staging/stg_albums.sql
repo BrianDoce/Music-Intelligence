@@ -12,3 +12,4 @@ SELECT
     ingestion_timestamp
 
 FROM {{ source('bronze', 'bronze_albums') }}
+LATERAL FLATTEN(input => payload:data) album
