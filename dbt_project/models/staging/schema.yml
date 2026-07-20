@@ -39,8 +39,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_artists')
-              field: artist_id
+              arguments:
+                to: ref('stg_artists')
+                field: artist_id
 
       - name: album_name
         tests:
@@ -65,8 +66,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_albums')
-              field: album_id
+              arguments:
+                to: ref('stg_albums')
+                field: album_id
 
       - name: track_name
         tests:
@@ -79,3 +81,8 @@ models:
       - name: track_number
         tests:
           - not_null
+      - name: explicit
+        tests:
+          - accepted_values:
+              arguments:
+                values: [true, false]
