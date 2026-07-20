@@ -23,8 +23,6 @@ class SpotifyClient:
                 timeout=15
             )
             print(f"Status: {response.status_code}")
-            print(response.text)
-            print(response.headers.get("Retry-After"))
             
             if response.status_code == 429:
                 wait = int(response.headers.get("Retry-After", 5))
@@ -81,3 +79,7 @@ class SpotifyClient:
         
         return self.request_with_retry(URL)
     
+    def get_album_tracks(self, album_id):
+        URL = f'{self.URL_BASE}/albums/{album_id}/tracks?market=US&limit=50'
+
+        return self.paginate(URL)
