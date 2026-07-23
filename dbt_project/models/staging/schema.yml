@@ -74,7 +74,7 @@ models:
         tests:
           - not_null
 
-      - name: duration_ms
+      - name: duration_mins
         tests:
           - not_null
 

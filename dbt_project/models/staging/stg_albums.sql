@@ -7,8 +7,16 @@ SELECT
     album.value:name::STRING AS album_name,
     album.value:album_type::STRING AS album_type,
 
-    album.value:release_date::STRING AS release_date,
+    album.value:release_date::STRING AS raw_release_date,
     album.value:release_date_precision::STRING AS release_date_precision,
+    CASE
+        WHEN album.value:release_date_precision::STRING = 'day'
+            THEN TO_DATE(album.value:release_date::STRING)
+        WHEN album.value:release_date_precision::STRING = 'month'
+            THEN TO_DATE(album.value:release_date::STRING || '-01')
+        WHEN album.value:release_date_precision::STRIN = 'year'
+            THEN TO_DATE(album.value:release_date::STRING || '-01-01')
+    END AS release_date,
 
     album.value:total_tracks::INTEGER AS total_tracks,
 
@@ -38,13 +46,18 @@ SELECT
     album_id,
     album_name,
     album_type,
-    release_date,
+
+    raw_release_date,
     release_date_precision,
-    TRY_TO_NUMBER(SPLIT_PART(release_date,'-',1)) AS release_year,
+    release_date,
+    YEAR(release_date) AS release_year,
+
     total_tracks,
+
     spotify_url,
     spotify_uri,
     spotify_api_url,
+
     ingestion_timestamp,
     CURRENT_TIMESTAMP() AS dbt_loaded_at
 
