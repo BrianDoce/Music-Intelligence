@@ -18,7 +18,7 @@ FROM {{ source('bronze','bronze_artists') }}
 
 )
 
-SELECT artist_id,
+SELECT DISTINCT artist_id,
     artist_name,
     followers,
     popularity,

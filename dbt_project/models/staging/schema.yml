@@ -1,5 +1,15 @@
 version: 2
-
+sources:
+  - name: bronze
+    config:
+      freshness:
+        warn_after:
+          count: 1
+          period: day
+    tables:
+      - name: bronze_tracks
+      - name: bronze_albums
+      - name: bronze_artists
 models:
 
   - name: stg_artists
@@ -8,21 +18,29 @@ models:
     columns:
 
       - name: artist_id
+        description: Unique identifier for the artist.
         tests:
           - unique
           - not_null
 
       - name: artist_name
+        description: Name of the artist.
         tests:
           - not_null
 
       - name: followers
+        description: Number of followers for the artist.
         tests:
           - not_null
 
       - name: popularity
+        description: Popularity score of the artist.
         tests:
           - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
 
 
   - name: stg_albums
@@ -31,11 +49,14 @@ models:
     columns:
 
       - name: album_id
+        description: Unique identifier for the album.
         tests:
           - unique
           - not_null
+      
 
       - name: artist_id
+        description: Foreign key to the artist.
         tests:
           - not_null
           - relationships:
@@ -44,10 +65,12 @@ models:
                 field: artist_id
 
       - name: album_name
+        description: Name of the album.
         tests:
           - not_null
 
       - name: release_date
+        description: Release date of the album.
         tests:
           - not_null
 
@@ -58,11 +81,13 @@ models:
     columns:
 
       - name: track_id
+        description: Unique identifer for the track.
         tests:
           - unique
           - not_null
-
+        
       - name: album_id
+        description: Foreign key to the album.
         tests:
           - not_null
           - relationships:
@@ -71,14 +96,17 @@ models:
                 field: album_id
 
       - name: track_name
+        description: Name of the track.
         tests:
           - not_null
 
       - name: duration_mins
+        description: Duration of the track in minutes.
         tests:
           - not_null
 
       - name: track_number
+        description: Track number in the album.
         tests:
           - not_null
       - name: explicit
@@ -92,29 +120,174 @@ models:
 
     columns:
 
-      - name: album_id
+      - name: album_key
+        description: Surrogate key for the album.
         tests:
           - not_null
           - unique
+          - relationships:
+              arguments:
+                to: ref('dim_albums')
+                field: album_key
 
       - name: track_count
+        description: Number of tracks in the album.
         tests:
           - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
 
       - name: avg_track_duration
         tests:
           - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
 
   - name: fact_artist_metrics
     description: Fact table for artist metrics.
 
     columns:
-
-      - name: artist_id
+      - name: artist_key
+        description: Surrogate key for the artist.
         tests:
           - not_null
           - unique
+          - relationships:
+              arguments:
+                to: ref('dim_artists')
+                field: artist_key
 
       - name: album_count
+        description: Number of albums for the artist.
         tests:
           - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+      - name: track_count
+        description: Number of tracks for the artist.
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+      - name: popularity
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+              
+
+  - name: dim_artists
+    description: Dimension table containing Spotify artist attributes.
+
+    columns:
+
+      - name: artist_key
+        tests:
+          - unique
+          - not_null
+
+      - name: artist_id
+        tests:
+          - unique
+          - not_null
+
+      - name: followers
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+      - name: popularity
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+
+  - name: dim_albums
+    description: Dimension table containing Spotify album attributes.
+    columns:
+
+      - name: album_key
+        tests:
+          - unique
+          - not_null
+
+      - name: album_id
+        tests:
+          - unique
+          - not_null
+
+      - name: artist_key
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_artists')
+                field: artist_key
+                
+      - name: album_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - album
+                  - single
+                  - compilation
+
+  - name: dim_tracks
+    description: Dimension table containing Spotify track attributes.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - album_key
+              - track_number
+    columns:
+
+      - name: track_key
+        tests:
+          - unique
+          - not_null
+
+      - name: album_key
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_albums')
+                field: album_key
+      - name: duration_mins
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 30
+  - name: dim_date
+    description: Dimension table containing date attributes.
+    columns:
+
+      - name: release_date_key
+        tests:
+          - unique
+          - not_null
+
+      - name: year
+        tests:
+          - not_null
+
+      - name: release_date
+        tests:
+          - not_null
+      - name: month
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 1
+                max_value: 12

@@ -1,4 +1,4 @@
-WITH albums AS (
+WITH albums_raw AS (
 
 SELECT
     payload:artist_id::STRING AS artist_id,
@@ -9,14 +9,6 @@ SELECT
 
     album.value:release_date::STRING AS raw_release_date,
     album.value:release_date_precision::STRING AS release_date_precision,
-    CASE
-        WHEN album.value:release_date_precision::STRING = 'day'
-            THEN TO_DATE(album.value:release_date::STRING)
-        WHEN album.value:release_date_precision::STRING = 'month'
-            THEN TO_DATE(album.value:release_date::STRING || '-01')
-        WHEN album.value:release_date_precision::STRIN = 'year'
-            THEN TO_DATE(album.value:release_date::STRING || '-01-01')
-    END AS release_date,
 
     album.value:total_tracks::INTEGER AS total_tracks,
 
@@ -31,13 +23,31 @@ SELECT
         ORDER BY ingestion_timestamp DESC
     ) AS rn
 
-
 FROM {{ source('bronze','bronze_albums') }},
 
 LATERAL FLATTEN(
     input => payload:data
 ) album
 
+),
+
+albums_clean AS (
+
+SELECT
+    *,
+    CASE
+        WHEN release_date_precision = 'day'
+            THEN TO_DATE(raw_release_date)
+
+        WHEN release_date_precision = 'month'
+            THEN TO_DATE(raw_release_date || '-01')
+
+        WHEN release_date_precision = 'year'
+            THEN TO_DATE(raw_release_date || '-01-01')
+
+    END AS release_date
+
+FROM albums_raw
 
 )
 
@@ -50,6 +60,7 @@ SELECT
     raw_release_date,
     release_date_precision,
     release_date,
+
     YEAR(release_date) AS release_year,
 
     total_tracks,
@@ -61,5 +72,5 @@ SELECT
     ingestion_timestamp,
     CURRENT_TIMESTAMP() AS dbt_loaded_at
 
-FROM albums
+FROM albums_clean
 WHERE rn = 1
