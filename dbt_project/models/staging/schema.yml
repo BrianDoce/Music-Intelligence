@@ -86,3 +86,35 @@ models:
           - accepted_values:
               arguments:
                 values: [true, false]
+
+  - name: fact_album_metrics
+    description: Fact table for album metrics.
+
+    columns:
+
+      - name: album_id
+        tests:
+          - not_null
+          - unique
+
+      - name: track_count
+        tests:
+          - not_null
+
+      - name: avg_track_duration
+        tests:
+          - not_null
+
+  - name: fact_artist_metrics
+    description: Fact table for artist metrics.
+
+    columns:
+
+      - name: artist_id
+        tests:
+          - not_null
+          - unique
+
+      - name: album_count
+        tests:
+          - not_null
